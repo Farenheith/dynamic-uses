@@ -154,6 +154,40 @@ with: |
    ```
 - GitHub Actions has several bugs impacting nested composite actions (e.g. https://github.com/actions/runner/issues/2800, https://github.com/actions/runner/issues/2009). When you use dynamic-uses to call another composite action, these bugs can cause problems like blank/wrong `inputs` or `ouputs` within that action. As a workaround, you can try passing data along with `GITHUB_ENV` instead.
 
+## dynamic-uses/matrix
+
+This is a variant of `dynamic-uses` that allows you to call another action multiple times with different parameters, using a matrix pattern. Each item in the matrix is passed as separate input parameters to the action, rather than being treated as a single `matrix` input.
+
+This version doesn't support capturing outputs yet. It also runs everything in sequence, not in parallel. For parallelism, you need to use different jobs, which already support matrix on their own.
+
+### When would I use this?
+
+When you want to run the same action multiple times with different configurations. For example:
+- Building multiple sub-applications with different settings
+- Processing multiple items with the same action
+
+### Usage
+
+Deploy multiple microservices to different environments:
+
+```yaml
+- uses: jenseng/dynamic-uses/matrix@matrix-action
+  with:
+    uses: my-org/deploy-service@v1
+    matrix: |
+      [
+        {"service": "api", "env": "staging"},
+        {"service": "web", "env": "staging"},
+        {"service": "api", "env": "production"},
+        {"service": "web", "env": "production"}
+      ]
+    with: |
+      region: us-east-1
+      registry: ${{ secrets.REGISTRY }}
+```
+
+This will deploy 4 services in sequence, each with the appropriate `service` and `env`, while sharing the same `region` and `registry` credentials.
+
 ## License
 
 The scripts and documentation in this project are released under the [ISC License](./LICENSE.md)
