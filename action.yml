@@ -41,9 +41,19 @@ runs:
             with:
         $(echo "$with" | sed -E "s/^/      /; s/\\\$\\{\\{/\${{'$'}}{{'\$'}}{{/g")
         DYNAMIC_USES_EOF
+
     - name: Run
       id: run
+      continue-on-error: true
       uses: ./.tmp-dynamic-uses
+
+    - name: Fail if action failed
+      shell: bash
+      if: steps.run.outcome != 'success'
+      run: |
+        echo "::error::Action failed with outputs: $outputs"
+        exit 1
+
     - name: Cleanup
       if: always() && steps.run.outcome != 'success'
       shell: bash
